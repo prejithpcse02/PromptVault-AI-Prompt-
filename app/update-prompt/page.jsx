@@ -1,11 +1,12 @@
 "use client";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Form from "@components/Form";
-const EditPrompt = () => {
+
+const EditPromptContent = () => {
   const router = useRouter();
-  //const { data: session } = useSession();
+  // const { data: session } = useSession();
   const searchParams = useSearchParams();
   const promptId = searchParams.get("id");
   const [submitting, setSubmitting] = useState(false);
@@ -13,6 +14,7 @@ const EditPrompt = () => {
     prompt: "",
     tag: "",
   });
+
   useEffect(() => {
     const getPromptDetails = async () => {
       const response = await fetch(`/api/prompt/${promptId}`);
@@ -22,12 +24,16 @@ const EditPrompt = () => {
         tag: data.tag,
       });
     };
+
     if (promptId) getPromptDetails();
   }, [promptId]);
+
   const updatePrompt = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+
     if (!promptId) return alert("PromptID not found, please try again!");
+
     try {
       const response = await fetch(`/api/prompt/${promptId}`, {
         method: "PATCH",
@@ -36,6 +42,7 @@ const EditPrompt = () => {
           tag: post.tag,
         }),
       });
+
       if (response.ok) {
         router.push("/");
       }
@@ -45,6 +52,7 @@ const EditPrompt = () => {
       setSubmitting(false);
     }
   };
+
   return (
     <Form
       type="Edit"
@@ -53,6 +61,14 @@ const EditPrompt = () => {
       submitting={submitting}
       handleSubmit={updatePrompt}
     />
+  );
+};
+
+const EditPrompt = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <EditPromptContent />
+    </Suspense>
   );
 };
 
